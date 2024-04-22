@@ -1,0 +1,151 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Employee</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding-top: 20px;
+        }
+        header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+            border-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+<header>Create Employee</header>
+<script>
+    function addDataToTable(dataEmployee) {
+        let dataHtml = `<tr>
+                <th>Employee Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Role</th>
+                <th>Salary</th>
+            </tr>`;
+        dataHtml += dataEmployee.map((employee) => {
+            return `<tr>
+                        <td>${employee.id}</td>
+                        <td>${employee.first_name}</td>
+                        <td>${employee.last_name}</td>
+                        <td>${employee.role}</td>
+                        <td>${employee.salary}</td>
+                    </tr>`
+        }).join("");
+        console.log("dataHtml", dataHtml);
+        const table = document.querySelector("#employees");
+        table.innerHTML = dataHtml;
+    }
+
+    async function getFromApi() {
+        const response = await fetch('/retrieve/employees');
+        const data = await response.json();
+        console.log("data", data);
+        addDataToTable(data);
+    }
+
+    async function postToApi(event) {
+        event.preventDefault();
+        const id = document.querySelector("#id").value;
+        const first_name = document.querySelector("#first_name").value;
+        const last_name = document.querySelector("#last_name").value;
+        const role= document.querySelector("#role").value;
+        const salary = document.querySelector("#salary").value;
+
+        // Verificar si algún campo está vacío
+        if (id === "" || first_name === "" || last_name === "" || role === "" || salary === "") {
+            alert("Por favor, complete todos los campos.");
+            return; // No se envían los datos si hay campos vacíos
+        }
+
+        // Verificar si el ID ya existe en la tabla
+        const existingIds = Array.from(document.querySelectorAll('#employees tr td:first-child')).map(td => td.textContent);
+        if (existingIds.includes(id)) {
+            alert("El ID de empleado ya existe. Por favor, elija un ID único.");
+            return;
+        }
+
+        const response = await fetch('/retrieve/employees', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({id: id, first_name: first_name, last_name: last_name, role: role, salary: salary}),
+        });
+        const data = await response.json();
+        console.log("data", data);
+        addDataToTable(data);
+        clearFormFields();
+    }
+    function clearFormFields() {
+        document.querySelector("#id").value = "";
+        document.querySelector("#first_name").value = "";
+        document.querySelector("#last_name").value = "";
+        document.querySelector("#role").value = "";
+        document.querySelector("#salary").value = "";
+    }
+</script>
+<main>
+    <div class="container">
+        <button onclick="getFromApi()" type="button" class="btn btn-primary">Show all employees</button>
+        <br><br>
+        <table id="employees" class="table">
+        </table>
+    </div>
+    <div class="container">
+        <h2>Create a new employee</h2>
+        <form onsubmit="postToApi(event)">
+            <div class="form-group">
+                <label for="id">Employee Id</label>
+                <input type="text" class="form-control" id="id" required>
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Role</label>
+                <input type="text" class="form-control" id="role" required>
+            </div>
+            <div class="form-group">
+                <label for="salary">Salary</label>
+                <input type="text" class="form-control" id="salary" required>
+            </div>
+            <br>
+            <input type="submit" class="btn btn-primary" value="Save employee">
+        </form>
+    </div>
+</main>
+</body>
+</html>
